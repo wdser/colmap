@@ -24,11 +24,31 @@ IncrementalPipeline::Reconstruct()
         -> IncrementalPipeline::IterativeGlobalRefinement()
 ```
 
-# matcher
+# feature
 ```c++
 // src/colmap/exe/feature.cc
 |-> RunFeatureExtractor() 
+    -> CreateFeatureExtractorController()   -- FeatureExtractorController::
+        // resizers_, extractors_, writer_
+        // resizer_queue_, extractor_queue_, writer_queue_
+        -> FeatureExtractorController::FeatureExtractorController() 
+    -> feature_extractor->Start()
+        -> FeatureExtractorController::Run()
+    -> feature_extractor->Wait()
+
 |-> RunFeatureImporter() 
+    -> CreateFeatureImporterController()   -- FeatureImporterController::
+    -> feature_importer->Start()
+        // load keypoints and descriptors
+        // write database
+        -> FeatureImporterController::Run()
+    -> feature_importer->Wait()
+
+```
+
+# matcher
+```c++
+// src/colmap/exe/feature.cc
 |-> RunExhaustiveMatcher() 
 |-> RunMatchesImporter() 
 |-> RunSequentialMatcher() 
