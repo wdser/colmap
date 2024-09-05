@@ -97,6 +97,7 @@ void FeatureMatcherWorker::Run() {
 
       if (!cache_->ExistsDescriptors(data.image_id1) ||
           !cache_->ExistsDescriptors(data.image_id2)) {
+      // save results
         THROW_CHECK(output_queue_->Push(std::move(data)));
         continue;
       }
@@ -127,6 +128,7 @@ void FeatureMatcherWorker::Run() {
             &data.matches);
       }
 
+      // save results
       THROW_CHECK(output_queue_->Push(std::move(data)));
     }
   }
@@ -163,6 +165,7 @@ class VerifierWorker : public Thread {
 
         if (data.matches.size() <
             static_cast<size_t>(options_.min_num_inliers)) {
+      // save results
           THROW_CHECK(output_queue_->Push(std::move(data)));
           continue;
         }
@@ -181,6 +184,7 @@ class VerifierWorker : public Thread {
         data.two_view_geometry = EstimateTwoViewGeometry(
             camera1, points1, camera2, points2, data.matches, options_);
 
+      // save results
         THROW_CHECK(output_queue_->Push(std::move(data)));
       }
     }

@@ -44,6 +44,7 @@ IncrementalPipeline::Reconstruct()
         |-> CreateImagePairsFeatureMatcher()   -- ImportedPairGenerator::
         |-> CreateVocabTreeFeatureMatcher()    -- VocabTreePairGenerator::
         |-> CreateFeaturePairsFeatureMatcher() -- FeaturePairsFeatureMatcher::
+    // GenericFeatureMatcher public Thread
     -> matcher->Start()
         // src/colmap/controllers/feature_matching.cc
         -> GenericFeatureMatcher::Run() // call DerivedPairGenerator 
@@ -51,22 +52,43 @@ IncrementalPipeline::Reconstruct()
             -> FeatureMatcherController::Setup()
             // src/colmap/feature/matcher.h
             -> FeatureMatcherCache::Setup()
-            // src/colmap/feature/pairing.cc
-            -> DerivedPairGenerator::Next()
-            -> FeatureMatcherController::Match()
                 // src/colmap/controllers/feature_matching_utils.cc
                 -> FeatureMatcherWorker::Run() 
                     // src/colmap/feature/matcher.h
                     // src/colmap/feature/sift.cc
                     // FeatureMatcher, SiftGPUFeatureMatcher, SiftCPUFeatureMatcher
-                    |-> FeatureMatcher::Match() | 
+                    |-> FeatureMatcher::Match() // verifier_queue_
                         -> ComputeSiftDistanceMatrix() 
                         -> FindBestMatchesBruteForce()
                         -> FindBestMatchesIndex()
-                    |-> FeatureMatcher::MatchGuided() 
+                    |-> FeatureMatcher::MatchGuided() // output_queue_
                         -> ComputeSiftDistanceMatrix() 
                         -> FindBestMatchesIndex()
+
+            // src/colmap/feature/pairing.cc
+            -> DerivedPairGenerator::Next()
+            -> FeatureMatcherController::Match() // move matcher_queue_, verifier_queue_ and save output_queue_
+
     -> matcher->Wait()
+```
+
+# FeatureMatcherController
+```c++
+// control differnet job
+// src/colmap/controllers/feature_matching_utils.cc
+* FeatureMatcherController::FeatureMatcherController()
+    // init verifiers_, guided_matchers_, matchers_ with matcher_queue_, verifier_queue_, output_queue_, guided_matcher_queue_
+    JobQueue:: matcher_queue_, verifier_queue_, output_queue_, guided_matcher_queue_
+    Thread:: verifiers_
+    FeatureMatcherWorker:: matchers_, guided_matchers_ 
+* FeatureMatcherController::Setup()
+    // start matchers_, verifiers_, guided_matchers_
+
+* FeatureMatcherController::Match() 
+    // match image_pairs:
+        // 1.exists_matches: verifier
+        // 2.matcher
+    // check size of matches and inlier_matches, save output
 ```
 
 # Thread
@@ -75,6 +97,12 @@ Thread:: // src/colmap/util/threading.cc
 * Thread::Start()
     -> Thread::Wait()
     -> Thread::RunFunc // std::thread
-        -> Thread::Run()
+        -> Thread::Run() // pure virtual function
 * Thread::Stop()
+```
+
+# JobQueue<T>
+```c++
+queue<T>:: jobs_
+condition_variable:: push_condition_, pop_condition_, empty_condition_
 ```
