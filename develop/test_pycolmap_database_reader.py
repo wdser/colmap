@@ -2,6 +2,19 @@ import cv2
 import pycolmap
 import os
 import numpy as np
+import pdb
+
+def test_view_geometries(database):
+    two_view_geometries = database.read_two_view_geometries()
+    for idx in range(len(two_view_geometries[1])):
+        image_pair_ids = two_view_geometries[0][idx]
+        view_geometry = two_view_geometries[1][idx]
+        print(image_pair_ids)
+        print(view_geometry.F, view_geometry.E, view_geometry.H)
+        print(view_geometry.inlier_matches, view_geometry.config)
+        print(view_geometry.cam2_from_cam1.rotation, view_geometry.cam2_from_cam1.translation)
+        print("-----------------------------------------------")
+
 
 def show_features( image, keypoints):
     #feature ['keypoints', 'scores', 'descriptors', 'tile_idx', 'image_size']
@@ -19,33 +32,40 @@ def show_features( image, keypoints):
     # plt.show()
     return image_copy
 
-base_path = "./test_data/"
+base_path = "/home/mrwang/3dgs/kitti_test/"
 database_path = os.path.join(base_path, "database.db")
 
 database = pycolmap.Database(database_path)
 all_images = database.read_all_images()
+
 images_id = []
 for img in all_images:
     print(img.image_id, img.camera_id, img.name)
     images_id.append(img.image_id)
 
 for src_image_id in images_id:
-    # descriptors = database.read_descriptors(src_image_id)
-    # keypoints = database.read_keypoints(src_image_id)
+    descriptors = database.read_descriptors(src_image_id)
+    keypoints = database.read_keypoints(src_image_id)
+    print(len(descriptors), len(keypoints))
     # if len(descriptors) == len(keypoints):
     #     print(len(descriptors), len(keypoints))
     for tgt_image_id in images_id:
         src_keypoints = database.read_keypoints(src_image_id)
         tgt_keypoints = database.read_keypoints(tgt_image_id)
+
+
         matches = database.read_matches(src_image_id, tgt_image_id)
         src_img = cv2.imread(os.path.join(base_path, "images", str(database.read_image(src_image_id).name)))
         tgt_img = cv2.imread(os.path.join(base_path, "images", str(database.read_image(tgt_image_id).name)))
+
+        src_img_with_feature = show_features(src_img, src_keypoints)
+        tgt_img_with_feature = show_features(tgt_img, tgt_keypoints)
 
         print(len(matches), len(src_keypoints), len(tgt_keypoints))
         print(np.array(matches))
         matches_cv = []
         for idx in range(len(matches)):
-            if idx % 20 != 0:
+            if idx % 100 != 0:
                 continue
             idx_pair = matches[idx]
             if not (idx_pair[0] < len(src_keypoints) and idx_pair[1] < len(tgt_keypoints)):
@@ -62,7 +82,7 @@ for src_image_id in images_id:
 
         src_keypoints_cv = [cv2.KeyPoint(x=p[0], y=p[1], size=1) for p in src_keypoints]
         tgt_keypoints_cv = [cv2.KeyPoint(x=p[0], y=p[1], size=1) for p in tgt_keypoints]
-        img_matches = cv2.drawMatches(src_img, src_keypoints_cv, tgt_img, tgt_keypoints_cv, matches_cv, None, 
+        img_matches = cv2.drawMatches(src_img_with_feature, src_keypoints_cv, tgt_img_with_feature, tgt_keypoints_cv, matches_cv, None, 
                               flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
                               matchesThickness=1)
         cv2.namedWindow('Matches', cv2.WINDOW_NORMAL)

@@ -31,3 +31,6 @@ fi
 # ./build/src/colmap/exe/colmap gui # bash develop/run.sh gui
 # ./build/src/colmap/exe/colmap feature_extractor --image_path */images/ --database_path */database.db
 # ./build/src/colmap/exe/colmap exhaustive_matcher --database_path */database.db
+# ./build/src/colmap/exe/colmap mapper --image_path IMAGES --database_path DATABASE --output_path MODEL
+
+# sequential_matcher

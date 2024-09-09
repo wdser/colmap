@@ -314,9 +314,15 @@ class FeatureWriterThread : public Thread {
         if (!database_->ExistsKeypoints(image_data.image.ImageId())) {
           database_->WriteKeypoints(image_data.image.ImageId(),
                                     image_data.keypoints);
+          std::cout << " - - - - - - - - - - - - - - - - - - - - - - " <<std::endl;
+          std::cout << " - - - - - - - - - keypoints size:" << image_data.keypoints.size() << "- - - - - - - - - - - - - " <<std::endl;
         }
 
         if (!database_->ExistsDescriptors(image_data.image.ImageId())) {
+
+          std::cout << " - - - - - - - - - descriptors rows:" << image_data.descriptors.rows()<< ", cols:" << image_data.descriptors.cols()<< "- - - - - - - - - - - - - " <<std::endl;
+          std::cout << " - - - - - - - - - - - - - - - - - - - - - - " <<std::endl;
+
           database_->WriteDescriptors(image_data.image.ImageId(),
                                       image_data.descriptors);
         }

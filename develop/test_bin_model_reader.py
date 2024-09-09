@@ -1,10 +1,10 @@
 from scripts.python.read_write_model import read_model
 
-cameras_bin = "./test_data/sparse/0/cameras.bin"
-images_bin = "./test_data/sparse/0/images.bin"
-points3D_bin = "./test_data/sparse/0/cpoints3D.bin"
+cameras_bin = "..kitti_test/mapper/0/cameras.bin"
+images_bin = ".kitti_test/mapper/0/images.bin"
+points3D_bin = ".kitti_test/mapper/0/cpoints3D.bin"
 
-path = "./test_data/sparse/0/"
+path = ".kitti_test/mapper/0/"
 cameras, images, points3D = read_model(path)
 
 print("cameras keys: ", cameras.keys())
